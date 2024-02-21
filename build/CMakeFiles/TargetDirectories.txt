@@ -1,0 +1,5 @@
+/Users/ansen/Documents/Programming Projects/CS 251/Project 2/build/CMakeFiles/project2.dir
+/Users/ansen/Documents/Programming Projects/CS 251/Project 2/build/CMakeFiles/filesystem-app.dir
+/Users/ansen/Documents/Programming Projects/CS 251/Project 2/build/CMakeFiles/tree-app.dir
+/Users/ansen/Documents/Programming Projects/CS 251/Project 2/build/CMakeFiles/edit_cache.dir
+/Users/ansen/Documents/Programming Projects/CS 251/Project 2/build/CMakeFiles/rebuild_cache.dir
