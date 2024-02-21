@@ -189,5 +189,9 @@ namespace cs251
 		 * The maxheap that keep track of the largest file.
 		 */
 		file_size_max_heap m_fileSizeMaxHeap{};
+
+        size_t m_sizeLimit;
+
+        size_t m_currentSize;
 	};
 }

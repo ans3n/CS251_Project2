@@ -6,54 +6,76 @@ using namespace cs251;
 
 filesystem::filesystem(const size_t sizeLimit)
 {
-	//call tree() and set the size of some list to the passed in size limit??
+    m_sizeLimit = sizeLimit;
+    m_currentSize = 0;
 }
 
 handle filesystem::create_file(const size_t fileSize, const std::string& fileName)
 {
 	/*Exceptions*/
     //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
-    //  code: if the parent handle is in the m_node pool or is recycled or isn't in the directory pool, throw
+    m_fileSystemNodes.ref_node(0);
 
-    //If the fileName contains a ‘/’ character, throw invalid_name
     if (fileName.find('/') != -1) {
         throw invalid_name();
     }
 
-    //If adding the file would exceed the file system capacity, throw exceeds_size.
-    //  if greater than sizeLimit, throw
+    if (m_currentSize + fileSize > m_sizeLimit) {
+        throw exceeds_size();
+    }
 
-    //If an object with the same name already exists in the directory, throw file_exists
-    //  search through entire directory or using .find() method if can, if found, throw
+    auto& childrens = m_fileSystemNodes.ref_node(0).peek_children_handles();
+    for (int i = 0; i < childrens.size(); i++) {
+        if (fileName.compare(m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) == 0) {
+            throw file_exists();
+        }
+    }
 
     //create a file as a child of the directory pointed to by the root directory
-    //Instantiate the file with the given size and name.
+    handle newFile_handle = m_fileSystemNodes.allocate(0);
+    auto& createdNode = m_fileSystemNodes.ref_node(newFile_handle);
+    createdNode.ref_data().m_type = node_type::File;
+    createdNode.ref_data().m_name = fileName;
+    m_currentSize++;
+
+    return newFile_handle;
 }
 
 handle filesystem::create_directory(const std::string& directoryName)
 {
     /*Exceptions*/
     //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
-    //  code: if the parent handle is in the m_node pool or is recycled or isn't in the directory pool, throw
+    m_fileSystemNodes.ref_node(0);
 
-    //If the fileName contains a ‘/’ character, throw invalid_name
     if (directoryName.find('/') != -1) {
         throw invalid_name();
     }
 
     //If an object with the same name already exists in the directory, throw directory_exists
     //  code: run a loop through entire directory and compare each element, if found throw
+    auto& childrens = m_fileSystemNodes.ref_node(0).peek_children_handles();
+    for (int i = 0; i < childrens.size(); i++) {
+        if (directoryName.compare(m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) == 0) {                 //check if using get_name() is right
+            throw directory_exists();
+        }
+    }
 
     //Create a new directory as a child of the directory pointed to by the root directory
-    //Instantiate the directory with the given name.
+    //Instantiate the directory with the given name
+    handle newDirectory_handle = m_fileSystemNodes.allocate(0);
+    auto& createdDirectory = m_fileSystemNodes.ref_node(newDirectory_handle);
+    createdDirectory.ref_data().m_type = node_type::Directory;
+    createdDirectory.ref_data().m_name = directoryName;
 
+    return newDirectory_handle;
 }
 
 handle filesystem::create_link(const handle targetHandle, const std::string& linkName)
 {
     /*Exceptions*/
-    //If either the parentHandle or the targetHandle do not exist, throw invalid_handle.
-    //  code: if is not in the handle vector or is recycled
+    //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
+    m_fileSystemNodes.ref_node(0);
+    m_fileSystemNodes.ref_node(targetHandle);
 
     //If the parentHandle isn’t a directory, throw invalid_handle.
     // code: if parentHandle isn't in the directory list - need to check if recycled?
@@ -64,23 +86,45 @@ handle filesystem::create_link(const handle targetHandle, const std::string& lin
     }
 
     //If an object with the same name already exists in the directory, throw link_exists
-    //  code: if the object exists, throw
+    auto& childrens = m_fileSystemNodes.ref_node(0).peek_children_handles();
+    for (int i = 0; i < childrens.size(); i++) {
+        if (linkName.compare(m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) == 0) {
+            throw link_exists();
+        }
+    }
 
     //Create a new link as a child of the directory pointed to by the root directory
     //Instantiate the link with the given name and have it point to targetHandle
+    handle newLink_handle = m_fileSystemNodes.allocate(0);
+    auto& createdLink = m_fileSystemNodes.ref_node(newLink_handle);
+    createdLink.ref_data().m_type = node_type::Link;
+    createdLink.ref_data().m_name = linkName;
+    createdLink.ref_data().m_linkedHandle = targetHandle;
+
+    return newLink_handle;
 }
 
 bool filesystem::remove(const handle targetHandle)
 {
 	// If the targetHandle doesn’t exist, throw invalid_handle
-    //  code: search through node vector to see if targetHandle isn't there or if it's recycled, then throw
+    m_fileSystemNodes.ref_node(targetHandle);
 
     bool removed = false;
 
-    //Delete the file, directory, or link indicated by targetHandle.
-    // If the target is a directory, remove only if it's empty
-    // If the target is a link, only remove the link, not the object it points to.
-    // return true if the target is removed, and false otherwise
+    if (m_fileSystemNodes.ref_node(targetHandle).ref_data().m_type == node_type::Directory) {
+        if (m_fileSystemNodes.ref_node(targetHandle).peek_children_handles().empty()) {
+            m_fileSystemNodes.remove(targetHandle);
+            removed = true;
+        }
+    } else if (m_fileSystemNodes.ref_node(targetHandle).ref_data().m_type == node_type::Link) {
+        m_fileSystemNodes.remove(m_fileSystemNodes.ref_node(targetHandle).ref_data().m_linkedHandle);
+        removed = true;
+    } else {
+        //file
+        m_fileSystemNodes.remove(targetHandle);
+        m_currentSize--;
+        removed = true;
+    }
 
     return removed;
 }
@@ -89,46 +133,68 @@ handle filesystem::create_file(const size_t fileSize, const std::string& fileNam
 {
     /*Exceptions*/
     //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
-    //  code: if the parent handle is in the m_node pool or is recycled or isn't in the directory pool, throw
+    m_fileSystemNodes.ref_node(parentHandle);
 
-    //If the fileName contains a ‘/’ character, throw invalid_name
     if (fileName.find('/') != -1) {
         throw invalid_name();
     }
 
-    //If adding the file would exceed the file system capacity, throw exceeds_size.
-    //  if greater than sizeLimit, throw
+    if (m_currentSize + fileSize > m_sizeLimit) {
+        throw exceeds_size();
+    }
 
-    //If an object with the same name already exists in the directory, throw file_exists
-    //  search through entire directory or using .find() method if can, if found, throw
+    auto& childrens = m_fileSystemNodes.ref_node(parentHandle).peek_children_handles();
+    for (int i = 0; i < childrens.size(); i++) {
+        if (fileName.compare(m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) == 0) {                 //check if using get_name() is right
+            throw file_exists();
+        }
+    }
 
-    //create a file as a child of the directory pointed to by the parent handle
-    //Instantiate the file with the given size and name.
+    //create a file as a child of the directory pointed to by the root directory
+    handle newFile_handle = m_fileSystemNodes.allocate(parentHandle);
+    auto& createdNode = m_fileSystemNodes.ref_node(newFile_handle);
+    createdNode.ref_data().m_type = node_type::File;
+    createdNode.ref_data().m_name = fileName;
+    m_currentSize++;
+
+    return newFile_handle;
 }
 
 handle filesystem::create_directory(const std::string& directoryName, const handle parentHandle)
 {
     /*Exceptions*/
     //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
-    //  code: if the parent handle is in the m_node pool or is recycled or isn't in the directory pool, throw
+    m_fileSystemNodes.ref_node(parentHandle);
 
-    //If the fileName contains a ‘/’ character, throw invalid_name
     if (directoryName.find('/') != -1) {
         throw invalid_name();
     }
 
     //If an object with the same name already exists in the directory, throw directory_exists
     //  code: run a loop through entire directory and compare each element, if found throw
+    auto& childrens = m_fileSystemNodes.ref_node(parentHandle).peek_children_handles();
+    for (int i = 0; i < childrens.size(); i++) {
+        if (directoryName.compare(m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) == 0) {                 //check if using get_name() is right
+            throw directory_exists();
+        }
+    }
 
-    //Create a new directory as a child of the directory pointed to by the parentHandle directory
-    //Instantiate the directory with the given name.
+    //Create a new directory as a child of the directory pointed to by the root directory
+    //Instantiate the directory with the given name
+    handle newDirectory_handle = m_fileSystemNodes.allocate(parentHandle);
+    auto& createdDirectory = m_fileSystemNodes.ref_node(newDirectory_handle);
+    createdDirectory.ref_data().m_type = node_type::Directory;
+    createdDirectory.ref_data().m_name = directoryName;
+
+    return newDirectory_handle;
 }
 
 handle filesystem::create_link(const handle targetHandle, const std::string& linkName, const handle parentHandle)
 {
     /*Exceptions*/
-    //If either the parentHandle or the targetHandle do not exist, throw invalid_handle.
-    //  code: if is not in the handle vector or is recycled
+    //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
+    m_fileSystemNodes.ref_node(parentHandle);
+    m_fileSystemNodes.ref_node(targetHandle);
 
     //If the parentHandle isn’t a directory, throw invalid_handle.
     // code: if parentHandle isn't in the directory list - need to check if recycled?
@@ -139,17 +205,38 @@ handle filesystem::create_link(const handle targetHandle, const std::string& lin
     }
 
     //If an object with the same name already exists in the directory, throw link_exists
-    //  code: if the object exists, throw
+    auto& childrens = m_fileSystemNodes.ref_node(parentHandle).peek_children_handles();
+    for (int i = 0; i < childrens.size(); i++) {
+        if (linkName.compare(m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) == 0) {
+            throw link_exists();
+        }
+    }
 
-    //Create a new link as a child of the directory pointed to by the parent handle
+    //Create a new link as a child of the directory pointed to by the root directory
     //Instantiate the link with the given name and have it point to targetHandle
+    handle newLink_handle = m_fileSystemNodes.allocate(parentHandle);
+    auto& createdLink = m_fileSystemNodes.ref_node(newLink_handle);
+    createdLink.ref_data().m_type = node_type::Link;
+    createdLink.ref_data().m_name = linkName;
+    createdLink.ref_data().m_linkedHandle = targetHandle;
+
+    return newLink_handle;
 }
 
 std::string filesystem::get_absolute_path(const handle targetHandle)
 {
     //If the targetHandle doesn’t exist, throw invalid_handle
+    m_fileSystemNodes.ref_node(targetHandle);
 
+    std::string absolutePath;
+    handle currentHandle = targetHandle;
 
+    while (currentHandle > 0) {
+        absolutePath = "/" + m_fileSystemNodes.ref_node(currentHandle).ref_data().m_name + absolutePath;
+        currentHandle = m_fileSystemNodes.ref_node(currentHandle).get_parent_handle();
+    }
+
+    return absolutePath;
 }
 
 std::string filesystem::get_name(const handle targetHandle)
@@ -161,20 +248,35 @@ std::string filesystem::get_name(const handle targetHandle)
 void filesystem::rename(const handle targetHandle, const std::string& newName)
 {
 	//If the targetHandle doesn’t exist, throw invalid_handle.
+    m_fileSystemNodes.ref_node(targetHandle);
 
-    //If the newName contains a ‘/’ character, throw invalid_name.
     if (newName.find("/") != -1) {
         throw invalid_name();
     }
 
     //If a file/directory/symlink with newName already exists, throw name_exists
+    auto& childrens = m_fileSystemNodes.ref_node(targetHandle).peek_children_handles();
+    for (int i = 0; i < childrens.size(); i++) {
+        if (newName.compare(m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) == 0) {
+            throw name_exists();
+        }
+    }
 
-    //Rename the file/directory/symlink referred to by targetHandle to newName.
+    //Rename the file/directory/symlink referred to by targetHandle to newName
+    m_fileSystemNodes.ref_node(targetHandle).ref_data().m_name = newName;
 }
 
 bool filesystem::exist(const handle targetHandle)
 {
 	//if target Handle exists in m_node and it doesn't exist in m_node_pool, return true
+    bool found = false;
+   try {
+       found = m_fileSystemNodes.ref_node(targetHandle).is_recycled();
+   } catch (invalid_handle()) {
+       return false;
+   }
+
+   return found;
 }
 
 handle filesystem::get_handle(const std::string& absolutePath)
