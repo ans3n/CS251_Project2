@@ -24,17 +24,7 @@
   <component name="ChangeListManager">
     <list default="true" id="67c5fc49-729c-4750-acd3-d9122c708736" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/filesystem-app.dir/src/filesystem_app.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/filesystem-app.dir/src/filesystem_app.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/project2.dir/src/file_size_max_heap.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/project2.dir/src/file_size_max_heap.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/project2.dir/src/filesystem.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/project2.dir/src/filesystem.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/project2.dir/src/filesystem_app.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/project2.dir/src/filesystem_app.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/project2.dir/src/tree_app.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/project2.dir/src/tree_app.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/CMakeFiles/tree-app.dir/src/tree_app.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/build/CMakeFiles/tree-app.dir/src/tree_app.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/filesystem-app" beforeDir="false" afterPath="$PROJECT_DIR$/build/filesystem-app" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/libproject2.a" beforeDir="false" afterPath="$PROJECT_DIR$/build/libproject2.a" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/tree-app" beforeDir="false" afterPath="$PROJECT_DIR$/build/tree-app" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/file_size_max_heap.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/file_size_max_heap.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/filesystem.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/filesystem.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -125,7 +115,7 @@
       <workItem from="1708536082743" duration="102000" />
       <workItem from="1708536285675" duration="3169000" />
       <workItem from="1708547183044" duration="5813000" />
-      <workItem from="1708568406726" duration="12843000" />
+      <workItem from="1708568406726" duration="15050000" />
     </task>
     <servers />
   </component>
