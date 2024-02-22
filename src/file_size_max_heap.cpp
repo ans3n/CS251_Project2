@@ -9,13 +9,13 @@ void file_size_max_heap::push(const size_t fileSize, const handle handle)
     m_nodes.push_back(newNode);
 
     //heapify up for max heap
-    size_t currentIndex = m_nodeSize;
-    while (currentIndex > 0) {
-        size_t parentIndex = (currentIndex - 1) / 2;
-        if (m_nodes[currentIndex].m_value > m_nodes[parentIndex].m_value) {
-            // Swap nodes if the current node has a larger value than its parent
-            std::swap(m_nodes[currentIndex], m_nodes[parentIndex]);
-            currentIndex = parentIndex;
+    size_t current = m_nodeSize;
+    while (current > 0) {
+        size_t parent = (current - 1) / 2;
+        if (m_nodes[current].m_value > m_nodes[parent].m_value) {
+            //maxheap: swap if the current node has a larger value than its parent
+            std::swap(m_nodes[current], m_nodes[parent]);
+            current = parent;
         } else {
             // already in position
             break;
@@ -27,11 +27,56 @@ void file_size_max_heap::push(const size_t fileSize, const handle handle)
 
 handle file_size_max_heap::top() const
 {
-	//TODO: Remove following line and add your implementation here.
-	throw std::logic_error("file_size_max_heap::" + std::string(__FUNCTION__) + " not implemented");
+	if (m_nodeSize == 0) {
+        throw heap_empty();
+    }
+
+    return m_nodes[0].m_handle;
 }
 
 void file_size_max_heap::remove(const handle handle)
 {
+    size_t location = -1;
 
+    for (int i = 0; i < m_nodes.size(); i++) {
+        if (m_nodes[i].m_handle = handle) {
+            location = i;
+            break;
+        }
+    }
+
+    if (location == -1) {
+        throw invalid_handle();
+    }
+
+    m_nodes[location] = m_nodes.back();
+    m_nodes.pop_back();
+    m_nodeSize--;
+
+    size_t current = location;
+    bool sorted = false;
+
+    while (!sorted) {
+        //heapify
+        size_t largestIndex = current;
+        size_t leftIndex = 2 * location + 1;
+        size_t rightIndex = 2 * location + 2;
+
+        if (leftIndex < m_nodeSize && m_nodes[leftIndex].m_value > m_nodes[largestIndex].m_value) {
+            largestIndex = leftIndex;
+        }
+
+        if (rightIndex < m_nodeSize && m_nodes[rightIndex].m_value > m_nodes[largestIndex].m_value) {
+            largestIndex = rightIndex;
+        }
+
+        if (largestIndex != current) {
+            //swap if the current node has a smaller value than its children
+            std::swap(m_nodes[current], m_nodes[largestIndex]);
+            current = largestIndex;
+            sorted = false;
+        } else {
+            sorted = true;
+        }
+    }
 }

@@ -42,7 +42,7 @@ handle filesystem::create_file(const size_t fileSize, const std::string& fileNam
     createdNode.ref_data().m_linkedHandle = -1;
     m_currentSize += fileSize;
 
-    //m_fileSizeMaxHeap.push(fileSize, newFile_handle);                                                //check if needed
+    m_fileSizeMaxHeap.push(fileSize, newFile_handle);                                                //check if needed
 
     return newFile_handle;
 }
@@ -63,7 +63,7 @@ handle filesystem::create_directory(const std::string& directoryName)
     //  code: run a loop through entire directory and compare each element, if found throw
     auto& childrens = m_fileSystemNodes.ref_node(0).peek_children_handles();
     for (int i = 0; i < childrens.size(); i++) {
-        if (directoryName.compare(m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) == 0) {                 //check if using get_name() is right
+        if (directoryName.compare(m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) == 0) {
             throw directory_exists();
         }
     }
@@ -122,7 +122,7 @@ bool filesystem::remove(const handle targetHandle)
 
     if (m_fileSystemNodes.ref_node(targetHandle).ref_data().m_type == node_type::File) {
         m_currentSize -= m_fileSystemNodes.ref_node(targetHandle).ref_data().m_fileSize;
-        //m_fileSizeMaxHeap.remove(targetHandle);                                                                   //check
+        m_fileSizeMaxHeap.remove(targetHandle);                                                                   //check
         m_fileSystemNodes.remove(targetHandle);
         removed = true;
     } else if (m_fileSystemNodes.ref_node(targetHandle).ref_data().m_type == node_type::Directory) {
@@ -157,7 +157,7 @@ handle filesystem::create_file(const size_t fileSize, const std::string& fileNam
 
     auto& childrens = m_fileSystemNodes.ref_node(target).peek_children_handles();
     for (int i = 0; i < childrens.size(); i++) {
-        if (fileName == m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) {        //check if using get_name() is right
+        if (fileName == m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) {
             throw file_exists();
         }
     }
@@ -171,7 +171,7 @@ handle filesystem::create_file(const size_t fileSize, const std::string& fileNam
     createdNode.ref_data().m_linkedHandle = -1;
     m_currentSize += fileSize;
 
-    //m_fileSizeMaxHeap.push(fileSize, newFile_handle);
+    m_fileSizeMaxHeap.push(fileSize, newFile_handle);                                                       //check
 
     return newFile_handle;
 }
@@ -193,7 +193,7 @@ handle filesystem::create_directory(const std::string& directoryName, const hand
     //  code: run a loop through entire directory and compare each element, if found throw
     auto& childrens = m_fileSystemNodes.ref_node(target).peek_children_handles();
     for (int i = 0; i < childrens.size(); i++) {
-        if (directoryName == m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) {                 //check if using get_name() is right
+        if (directoryName == m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) {
             throw directory_exists();
         }
     }
@@ -328,29 +328,9 @@ handle filesystem::get_handle(const std::string& absolutePath)
     pathElements.push_back(absolutePath.substr(start));
 
     handle current = 0;
-    bool found = false;
 
-    /*
-    //find the first string in absolute path in root
-    auto& rootChildrens = m_fileSystemNodes.ref_node(current).peek_children_handles();
-    for (int i = 0; i < rootChildrens.size(); i++) {
-        if (m_fileSystemNodes.ref_node(rootChildrens[i]).ref_data().m_name == pathElements[0]) {
-            current = rootChildrens[i];
-            found = true;
-            break;
-        }
-    }
-    if (pathElements.size() == 1) {
-        return current;
-    }
-    if (!found) {
-        throw invalid_path();
-    }
-    */
-
-    //find everything else in each other
     for (int i = 0; i < pathElements.size(); i++) {
-        found = false;
+        bool found = false;
 
         if (m_fileSystemNodes.ref_node(current).ref_data().m_type == node_type::Link) {
             current = follow(current);
@@ -366,7 +346,7 @@ handle filesystem::get_handle(const std::string& absolutePath)
                 break;
             }
         }
-        if (!found) {
+        if (!found || !exist(current)) {
             throw invalid_path();
         }
 
@@ -375,9 +355,7 @@ handle filesystem::get_handle(const std::string& absolutePath)
             break;
         }
     }
-    if (!exist(current)) {
-        throw invalid_path();
-    }
+
     return current;
 }
 
@@ -398,8 +376,8 @@ handle filesystem::follow(const handle targetHandle)
 
 handle filesystem::get_largest_file_handle() const
 {
-	//TODO: Remove following line and add your implementation here.
-  throw std::logic_error("filesystem::" + std::string(__FUNCTION__) + " not implemented");
+    //top() already checks for if the filesystem empty
+	return m_fileSizeMaxHeap.top();
 }
 
 size_t filesystem::get_available_size() const
