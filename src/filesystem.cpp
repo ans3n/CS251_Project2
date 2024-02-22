@@ -14,7 +14,9 @@ handle filesystem::create_file(const size_t fileSize, const std::string& fileNam
 {
 	/*Exceptions*/
     //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
-    m_fileSystemNodes.ref_node(0);
+    if (!exist(0)) {
+        throw invalid_handle();
+    }
 
     if (fileName.find('/') != -1) {
         throw invalid_name();
@@ -45,7 +47,9 @@ handle filesystem::create_directory(const std::string& directoryName)
 {
     /*Exceptions*/
     //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
-    m_fileSystemNodes.ref_node(0);
+    if (!exist(0)) {
+        throw invalid_handle();
+    }
 
     if (directoryName.find('/') != -1) {
         throw invalid_name();
@@ -74,8 +78,9 @@ handle filesystem::create_link(const handle targetHandle, const std::string& lin
 {
     /*Exceptions*/
     //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
-    m_fileSystemNodes.ref_node(0);
-    m_fileSystemNodes.ref_node(targetHandle);
+    if (!exist(0) || !exist(targetHandle)) {
+        throw invalid_handle();
+    }
 
     //If the parentHandle isn’t a directory, throw invalid_handle.
     // code: if parentHandle isn't in the directory list - need to check if recycled?
@@ -107,7 +112,9 @@ handle filesystem::create_link(const handle targetHandle, const std::string& lin
 bool filesystem::remove(const handle targetHandle)
 {
 	// If the targetHandle doesn’t exist, throw invalid_handle
-    m_fileSystemNodes.ref_node(targetHandle);
+    if (!exist(targetHandle)) {
+        throw invalid_handle();
+    }
 
     bool removed = false;
 
@@ -133,7 +140,9 @@ handle filesystem::create_file(const size_t fileSize, const std::string& fileNam
 {
     /*Exceptions*/
     //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
-    m_fileSystemNodes.ref_node(parentHandle);
+    if (!exist(parentHandle)) {
+        throw invalid_handle();
+    }
 
     if (fileName.find('/') != -1) {
         throw invalid_name();
@@ -145,7 +154,7 @@ handle filesystem::create_file(const size_t fileSize, const std::string& fileNam
 
     auto& childrens = m_fileSystemNodes.ref_node(parentHandle).peek_children_handles();
     for (int i = 0; i < childrens.size(); i++) {
-        if (fileName.compare(m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) == 0) {                 //check if using get_name() is right
+        if (fileName.compare(m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) == 0) {        //check if using get_name() is right
             throw file_exists();
         }
     }
@@ -164,7 +173,9 @@ handle filesystem::create_directory(const std::string& directoryName, const hand
 {
     /*Exceptions*/
     //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
-    m_fileSystemNodes.ref_node(parentHandle);
+    if (!exist(parentHandle)) {
+        throw invalid_handle();
+    }
 
     if (directoryName.find('/') != -1) {
         throw invalid_name();
@@ -193,11 +204,9 @@ handle filesystem::create_link(const handle targetHandle, const std::string& lin
 {
     /*Exceptions*/
     //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
-    m_fileSystemNodes.ref_node(parentHandle);
-    m_fileSystemNodes.ref_node(targetHandle);
-
-    //If the parentHandle isn’t a directory, throw invalid_handle.
-    // code: if parentHandle isn't in the directory list - need to check if recycled?
+    if (!exist(targetHandle) || !exist(parentHandle)) {
+        throw invalid_handle();
+    }
 
     //If the linkName contains a ‘/’ character, throw invalid_name.
     if (linkName.find("/") != -1) {
@@ -226,9 +235,11 @@ handle filesystem::create_link(const handle targetHandle, const std::string& lin
 std::string filesystem::get_absolute_path(const handle targetHandle)
 {
     //If the targetHandle doesn’t exist, throw invalid_handle
-    m_fileSystemNodes.ref_node(targetHandle);
+    if (!exist(targetHandle)) {
+        throw invalid_handle();
+    }
 
-    std::string absolutePath;
+    std::string absolutePath = "";
     handle currentHandle = targetHandle;
 
     while (currentHandle > 0) {
@@ -241,14 +252,20 @@ std::string filesystem::get_absolute_path(const handle targetHandle)
 
 std::string filesystem::get_name(const handle targetHandle)
 {
-	//TODO: Remove following line and add your implementation here.
-  throw std::logic_error("filesystem::" + std::string(__FUNCTION__) + " not implemented");
+    //If the targetHandle doesn’t exist, throw invalid_handle.
+    if (!exist(targetHandle)) {
+        throw invalid_handle();
+    }
+
+    return m_fileSystemNodes.ref_node(targetHandle).ref_data().m_name;
 }
 
 void filesystem::rename(const handle targetHandle, const std::string& newName)
 {
 	//If the targetHandle doesn’t exist, throw invalid_handle.
-    m_fileSystemNodes.ref_node(targetHandle);
+    if (!exist(targetHandle)) {
+        throw invalid_handle();
+    }
 
     if (newName.find("/") != -1) {
         throw invalid_name();
@@ -268,27 +285,87 @@ void filesystem::rename(const handle targetHandle, const std::string& newName)
 
 bool filesystem::exist(const handle targetHandle)
 {
-	//if target Handle exists in m_node and it doesn't exist in m_node_pool, return true
     bool found = false;
-   try {
-       found = m_fileSystemNodes.ref_node(targetHandle).is_recycled();
-   } catch (invalid_handle()) {
-       return false;
-   }
 
-   return found;
+    try {
+        found = m_fileSystemNodes.ref_node(targetHandle).is_recycled();
+    } catch (invalid_handle()) {
+        return false;
+    }
+
+    return found;
 }
 
 handle filesystem::get_handle(const std::string& absolutePath)
 {
-	//TODO: Remove following line and add your implementation here.
-  throw std::logic_error("filesystem::" + std::string(__FUNCTION__) + " not implemented");
+    std::vector<std::string> pathElements;
+    size_t start = 1;
+    size_t slashLocation = absolutePath.find("/", 1);
+    while (slashLocation != std::string::npos) {
+        pathElements.push_back(absolutePath.substr(start, slashLocation - 1));
+        start = slashLocation + 1;
+        slashLocation = absolutePath.find("/", start);
+    }
+    pathElements.push_back(absolutePath.substr(start, absolutePath.length() - 1));
+
+    handle current = 0;
+    bool found = false;
+    auto& rootChildrens = m_fileSystemNodes.ref_node(current).peek_children_handles();
+    for (int i = 0; i < rootChildrens.size(); i++) {
+        if (m_fileSystemNodes.ref_node(rootChildrens[i]).ref_data().m_name == pathElements[0]) {
+            current = rootChildrens[i];
+            found = true;
+            break;
+        }
+    }
+
+    if (pathElements.size() == 1) {
+        return current;
+    }
+    if (!found) {
+        throw invalid_path();
+    }
+
+    for (int i = 1; i < pathElements.size() - 1; i++) {
+        found = false;
+
+        if (m_fileSystemNodes.ref_node(current).ref_data().m_type == node_type::Link) {
+            current = follow(current);
+        }
+
+        auto& childrens = m_fileSystemNodes.ref_node(current).peek_children_handles();
+
+        //find the next thing in the current thing
+        for (int j = 0; j < childrens.size(); j++) {
+            if (m_fileSystemNodes.ref_node(childrens[j]).ref_data().m_name == pathElements[i]) {
+                current = childrens[j];
+                found = true;
+                break;
+            }
+        }
+        //found the last thing
+        if (i == pathElements.size() - 1) {
+            return current;
+        }
+
+        if (!found) {
+            throw invalid_path();
+        }
+    }
 }
 
 handle filesystem::follow(const handle targetHandle)
 {
-	//TODO: Remove following line and add your implementation here.
-  throw std::logic_error("filesystem::" + std::string(__FUNCTION__) + " not implemented");
+    //If the targetHandle doesn’t exist, throw invalid_handle.
+    if (!exist(targetHandle)) {
+        throw invalid_handle();
+    }
+
+    if (m_fileSystemNodes.ref_node(targetHandle).ref_data().m_type == node_type::Link) {
+        follow(m_fileSystemNodes.ref_node(targetHandle).ref_data().m_linkedHandle);
+    }
+
+    return m_fileSystemNodes.ref_node(targetHandle).get_handle();
 }
 
 handle filesystem::get_largest_file_handle() const
@@ -299,20 +376,41 @@ handle filesystem::get_largest_file_handle() const
 
 size_t filesystem::get_available_size() const
 {
-	//TODO: Remove following line and add your implementation here.
-  throw std::logic_error("filesystem::" + std::string(__FUNCTION__) + " not implemented");
+    return m_sizeLimit - m_currentSize;
 }
 
 size_t filesystem::get_file_size(const handle targetHandle)
 {
-	//TODO: Remove following line and add your implementation here.
-  throw std::logic_error("filesystem::" + std::string(__FUNCTION__) + " not implemented");
+	if (!exist(targetHandle)) {
+        throw invalid_handle();
+    }
+
+    if (m_fileSystemNodes.ref_node(targetHandle).ref_data().m_type == node_type::Link) {
+        get_file_size(m_fileSystemNodes.ref_node(targetHandle).ref_data().m_linkedHandle);
+    }
+
+    if (m_fileSystemNodes.ref_node(targetHandle).ref_data().m_type != node_type::File) {
+        throw invalid_handle();
+    }
+
+    return m_fileSystemNodes.ref_node(targetHandle).ref_data().m_fileSize;
 }
 
 size_t filesystem::get_file_size(const std::string& absolutePath)
 {
-	//TODO: Remove following line and add your implementation here.
-  throw std::logic_error("filesystem::" + std::string(__FUNCTION__) + " not implemented");
+    if (!exist(get_handle(absolutePath))) {
+        throw invalid_path();
+    }
+
+    if (m_fileSystemNodes.ref_node(get_handle(absolutePath)).ref_data().m_type == node_type::Link) {
+        get_file_size(get_absolute_path(m_fileSystemNodes.ref_node(get_handle(absolutePath)).ref_data().m_linkedHandle));
+    }
+
+    if (m_fileSystemNodes.ref_node(get_handle(absolutePath)).ref_data().m_type != node_type::File) {
+        throw invalid_handle();
+    }
+
+    return m_fileSystemNodes.ref_node(get_handle(absolutePath)).ref_data().m_fileSize;
 }
 
 std::string filesystem::print_layout()
