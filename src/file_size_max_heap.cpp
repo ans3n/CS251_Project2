@@ -39,7 +39,7 @@ void file_size_max_heap::remove(const handle handle)
     size_t location = -1;
 
     for (int i = 0; i < m_nodes.size(); i++) {
-        if (m_nodes[i].m_handle = handle) {
+        if (m_nodes[i].m_handle == handle) {
             location = i;
             break;
         }
@@ -59,8 +59,8 @@ void file_size_max_heap::remove(const handle handle)
     while (!sorted) {
         //heapify
         size_t largestIndex = current;
-        size_t leftIndex = 2 * location + 1;
-        size_t rightIndex = 2 * location + 2;
+        size_t leftIndex = 2 * current + 1;
+        size_t rightIndex = 2 * current + 2;
 
         if (leftIndex < m_nodeSize && m_nodes[leftIndex].m_value > m_nodes[largestIndex].m_value) {
             largestIndex = leftIndex;
