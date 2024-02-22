@@ -1,0 +1,399 @@
+create_file
+Invalid handle!
+create_file_root
+Invalid handle!
+print_layout
+
+create_directory_root
+Invalid handle!
+print_layout
+
+create_directory
+Invalid handle!
+create_file
+Invalid handle!
+exist
+Invalid handle!
+create_directory
+Invalid handle!
+create_directory
+Invalid handle!
+create_file
+Invalid handle!
+get_absolute_path
+Invalid handle!
+print_layout
+
+get_file_size
+Invalid handle!
+create_file
+Invalid handle!
+create_file
+Invalid handle!
+create_file
+Invalid handle!
+create_file
+Invalid handle!
+create_directory
+Invalid handle!
+create_directory
+Invalid handle!
+get_available_size
+1152
+exist
+Invalid handle!
+create_file
+Invalid handle!
+get_file_size
+Invalid handle!
+create_directory
+Invalid handle!
+create_directory
+Invalid handle!
+get_file_size
+Invalid handle!
+get_name
+Invalid handle!
+get_available_size
+1152
+print_layout
+
+create_directory
+Invalid handle!
+get_file_size_path
+Invalid path!
+create_directory
+Invalid handle!
+print_layout
+
+get_available_size
+1152
+create_file
+Invalid handle!
+exist
+Invalid handle!
+create_directory
+Invalid handle!
+create_directory
+Invalid handle!
+get_file_size
+Invalid handle!
+create_file
+Invalid handle!
+create_file
+Invalid handle!
+get_available_size
+1152
+create_directory_root
+Invalid handle!
+create_directory
+Invalid handle!
+get_absolute_path
+Invalid handle!
+print_layout
+
+create_directory
+Invalid handle!
+create_directory
+Invalid handle!
+get_available_size
+1152
+get_handle
+Invalid path!
+get_absolute_path
+Invalid handle!
+create_directory
+Invalid handle!
+create_directory
+Invalid handle!
+print_layout
+
+create_directory
+Invalid handle!
+print_layout
+
+create_directory
+Invalid handle!
+get_file_size_path
+Invalid path!
+create_directory
+Invalid handle!
+print_layout
+
+print_layout
+
+create_file
+Invalid handle!
+get_file_size_path
+Invalid path!
+create_directory
+Invalid handle!
+create_directory
+Invalid handle!
+create_file
+Invalid handle!
+create_directory
+Invalid handle!
+get_file_size_path
+Invalid path!
+create_file
+Invalid handle!
+create_file
+Invalid handle!
+create_file
+Invalid handle!
+get_handle
+0
+create_file
+Invalid handle!
+create_file
+Invalid handle!
+get_handle
+Invalid path!
+create_file
+Invalid handle!
+create_file
+Invalid handle!
+print_layout
+
+exist
+Invalid handle!
+get_absolute_path
+Invalid handle!
+create_file
+Invalid handle!
+create_file
+Invalid handle!
+get_available_size
+1152
+print_layout
+
+create_file
+Invalid handle!
+get_available_size
+1152
+create_file
+Invalid handle!
+create_directory
+Invalid handle!
+get_handle
+Invalid path!
+create_directory
+Invalid handle!
+create_file
+Invalid handle!
+get_available_size
+1152
+create_directory
+Invalid handle!
+create_file
+Invalid handle!
+get_file_size_path
+Invalid path!
+get_absolute_path
+Invalid handle!
+get_absolute_path
+Invalid handle!
+create_file
+Invalid handle!
+get_name
+Invalid handle!
+print_layout
+
+create_file
+Invalid handle!
+create_file
+Invalid handle!
+create_file
+Invalid handle!
+create_directory
+Invalid handle!
+create_file
+Invalid handle!
+create_directory
+Invalid handle!
+get_handle
+Invalid path!
+print_layout
+
+create_directory
+Invalid handle!
+create_file
+Invalid handle!
+create_file
+Invalid handle!
+get_available_size
+1152
+create_directory_root
+Invalid handle!
+exist
+Invalid handle!
+create_directory
+Invalid handle!
+create_file
+Invalid handle!
+print_layout
+
+create_directory
+Invalid handle!
+get_file_size_path
+Invalid path!
+create_directory
+Invalid handle!
+print_layout
+
+create_file
+Invalid handle!
+create_directory
+Invalid handle!
+get_file_size_path
+Invalid path!
+get_absolute_path
+Invalid handle!
+create_directory
+Invalid handle!
+create_file
+Invalid handle!
+exist
+Invalid handle!
+print_layout
+
+create_directory
+Invalid handle!
+print_layout
+
+exist
+Invalid handle!
+get_file_size
+Invalid handle!
+create_directory
+Invalid handle!
+get_available_size
+1152
+create_directory
+Invalid handle!
+create_directory
+Invalid handle!
+get_name
+Invalid handle!
+create_directory
+Invalid handle!
+create_file
+Invalid handle!
+create_file
+Invalid handle!
+exist
+Invalid handle!
+get_name
+Invalid handle!
+create_file
+Invalid handle!
+create_directory
+Invalid handle!
+get_file_size
+Invalid handle!
+create_file
+Invalid handle!
+get_available_size
+1152
+get_absolute_path
+Invalid handle!
+get_absolute_path
+Invalid handle!
+get_file_size
+Invalid handle!
+create_directory
+Invalid handle!
+get_available_size
+1152
+print_layout
+
+create_file
+Invalid handle!
+get_file_size_path
+Invalid path!
+create_directory
+Invalid handle!
+print_layout
+
+create_file
+Invalid handle!
+create_file
+Invalid handle!
+print_layout
+
+get_absolute_path
+Invalid handle!
+create_directory
+Invalid handle!
+create_file
+Invalid handle!
+get_available_size
+1152
+create_file
+Invalid handle!
+create_file
+Invalid handle!
+exist
+Invalid handle!
+get_absolute_path
+Invalid handle!
+create_directory
+Invalid handle!
+create_file
+Invalid handle!
+get_name
+Invalid handle!
+create_file
+Invalid handle!
+print_layout
+
+get_handle
+Invalid path!
+exist
+Invalid handle!
+create_directory
+Invalid handle!
+create_file
+Invalid handle!
+exist
+Invalid handle!
+exist
+Invalid handle!
+create_directory
+Invalid handle!
+create_directory
+Invalid handle!
+create_directory
+Invalid handle!
+create_directory
+Invalid handle!
+create_directory
+Invalid handle!
+create_file
+Invalid handle!
+create_directory
+Invalid handle!
+create_directory
+Invalid handle!
+create_directory
+Invalid handle!
+create_file
+Invalid handle!
+create_directory
+Invalid handle!
+create_file
+Invalid handle!
+get_absolute_path
+Invalid handle!
+print_layout
+
+get_absolute_path
+Invalid handle!
+create_file
+Invalid handle!
+create_file
+Invalid handle!
+create_file
+Invalid handle!
+quit

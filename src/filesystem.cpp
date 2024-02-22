@@ -18,7 +18,7 @@ handle filesystem::create_file(const size_t fileSize, const std::string& fileNam
         throw invalid_handle();
     }
 
-    if (fileName.find('/') != -1) {
+    if (fileName.find('/') != std::string::npos) {
         throw invalid_name();
     }
 
@@ -38,7 +38,8 @@ handle filesystem::create_file(const size_t fileSize, const std::string& fileNam
     auto& createdNode = m_fileSystemNodes.ref_node(newFile_handle);
     createdNode.ref_data().m_type = node_type::File;
     createdNode.ref_data().m_name = fileName;
-    m_currentSize++;
+    createdNode.ref_data().m_fileSize = fileSize;
+    m_currentSize += fileSize;
 
     return newFile_handle;
 }
@@ -51,7 +52,7 @@ handle filesystem::create_directory(const std::string& directoryName)
         throw invalid_handle();
     }
 
-    if (directoryName.find('/') != -1) {
+    if (directoryName.find('/') != std::string::npos) {
         throw invalid_name();
     }
 
@@ -86,7 +87,7 @@ handle filesystem::create_link(const handle targetHandle, const std::string& lin
     // code: if parentHandle isn't in the directory list - need to check if recycled?
 
     //If the linkName contains a ‘/’ character, throw invalid_name.
-    if (linkName.find("/") != -1) {
+    if (linkName.find("/") != std::string::npos) {
         throw invalid_name();
     }
 
@@ -124,12 +125,12 @@ bool filesystem::remove(const handle targetHandle)
             removed = true;
         }
     } else if (m_fileSystemNodes.ref_node(targetHandle).ref_data().m_type == node_type::Link) {
-        m_fileSystemNodes.remove(m_fileSystemNodes.ref_node(targetHandle).ref_data().m_linkedHandle);
+        m_fileSystemNodes.remove(targetHandle);
         removed = true;
     } else {
         //file
+        m_currentSize -= m_fileSystemNodes.ref_node(targetHandle).ref_data().m_fileSize;
         m_fileSystemNodes.remove(targetHandle);
-        m_currentSize--;
         removed = true;
     }
 
@@ -140,11 +141,11 @@ handle filesystem::create_file(const size_t fileSize, const std::string& fileNam
 {
     /*Exceptions*/
     //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
-    if (!exist(parentHandle)) {
+    if (!exist(parentHandle) || (m_fileSystemNodes.ref_node(parentHandle).ref_data().m_type != node_type::Directory)) {
         throw invalid_handle();
     }
 
-    if (fileName.find('/') != -1) {
+    if (fileName.find('/') != std::string::npos) {
         throw invalid_name();
     }
 
@@ -154,7 +155,7 @@ handle filesystem::create_file(const size_t fileSize, const std::string& fileNam
 
     auto& childrens = m_fileSystemNodes.ref_node(parentHandle).peek_children_handles();
     for (int i = 0; i < childrens.size(); i++) {
-        if (fileName.compare(m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) == 0) {        //check if using get_name() is right
+        if (fileName == m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) {        //check if using get_name() is right
             throw file_exists();
         }
     }
@@ -164,7 +165,8 @@ handle filesystem::create_file(const size_t fileSize, const std::string& fileNam
     auto& createdNode = m_fileSystemNodes.ref_node(newFile_handle);
     createdNode.ref_data().m_type = node_type::File;
     createdNode.ref_data().m_name = fileName;
-    m_currentSize++;
+    createdNode.ref_data().m_fileSize = fileSize;
+    m_currentSize += fileSize;
 
     return newFile_handle;
 }
@@ -173,11 +175,11 @@ handle filesystem::create_directory(const std::string& directoryName, const hand
 {
     /*Exceptions*/
     //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
-    if (!exist(parentHandle)) {
+    if (!exist(parentHandle) || (m_fileSystemNodes.ref_node(parentHandle).ref_data().m_type != node_type::Directory)) {
         throw invalid_handle();
     }
 
-    if (directoryName.find('/') != -1) {
+    if (directoryName.find('/') != std::string::npos) {
         throw invalid_name();
     }
 
@@ -185,7 +187,7 @@ handle filesystem::create_directory(const std::string& directoryName, const hand
     //  code: run a loop through entire directory and compare each element, if found throw
     auto& childrens = m_fileSystemNodes.ref_node(parentHandle).peek_children_handles();
     for (int i = 0; i < childrens.size(); i++) {
-        if (directoryName.compare(m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) == 0) {                 //check if using get_name() is right
+        if (directoryName == m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) {                 //check if using get_name() is right
             throw directory_exists();
         }
     }
@@ -204,19 +206,19 @@ handle filesystem::create_link(const handle targetHandle, const std::string& lin
 {
     /*Exceptions*/
     //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
-    if (!exist(targetHandle) || !exist(parentHandle)) {
+    if (!exist(targetHandle) || !exist(parentHandle) || (m_fileSystemNodes.ref_node(parentHandle).ref_data().m_type != node_type::Directory)) {
         throw invalid_handle();
     }
 
     //If the linkName contains a ‘/’ character, throw invalid_name.
-    if (linkName.find("/") != -1) {
+    if (linkName.find("/") != std::string::npos) {
         throw invalid_name();
     }
 
     //If an object with the same name already exists in the directory, throw link_exists
     auto& childrens = m_fileSystemNodes.ref_node(parentHandle).peek_children_handles();
     for (int i = 0; i < childrens.size(); i++) {
-        if (linkName.compare(m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) == 0) {
+        if (linkName == m_fileSystemNodes.ref_node(childrens[i]).ref_data().m_name) {
             throw link_exists();
         }
     }
@@ -239,6 +241,9 @@ std::string filesystem::get_absolute_path(const handle targetHandle)
         throw invalid_handle();
     }
 
+    if (targetHandle == 0) {
+        return "/";
+    }
     std::string absolutePath = "";
     handle currentHandle = targetHandle;
 
@@ -267,7 +272,7 @@ void filesystem::rename(const handle targetHandle, const std::string& newName)
         throw invalid_handle();
     }
 
-    if (newName.find("/") != -1) {
+    if (newName.find("/") != std::string::npos) {
         throw invalid_name();
     }
 
@@ -298,6 +303,7 @@ bool filesystem::exist(const handle targetHandle)
 
 handle filesystem::get_handle(const std::string& absolutePath)
 {
+    //place all strings in absolute path in an array
     std::vector<std::string> pathElements;
     size_t start = 1;
     size_t slashLocation = absolutePath.find("/", 1);
@@ -310,6 +316,8 @@ handle filesystem::get_handle(const std::string& absolutePath)
 
     handle current = 0;
     bool found = false;
+
+    //find the first string in absolute path in root
     auto& rootChildrens = m_fileSystemNodes.ref_node(current).peek_children_handles();
     for (int i = 0; i < rootChildrens.size(); i++) {
         if (m_fileSystemNodes.ref_node(rootChildrens[i]).ref_data().m_name == pathElements[0]) {
@@ -318,7 +326,6 @@ handle filesystem::get_handle(const std::string& absolutePath)
             break;
         }
     }
-
     if (pathElements.size() == 1) {
         return current;
     }
@@ -326,6 +333,7 @@ handle filesystem::get_handle(const std::string& absolutePath)
         throw invalid_path();
     }
 
+    //find everything else in each other
     for (int i = 1; i < pathElements.size() - 1; i++) {
         found = false;
 
@@ -335,7 +343,7 @@ handle filesystem::get_handle(const std::string& absolutePath)
 
         auto& childrens = m_fileSystemNodes.ref_node(current).peek_children_handles();
 
-        //find the next thing in the current thing
+        //find the next thing among the current thing's children handles
         for (int j = 0; j < childrens.size(); j++) {
             if (m_fileSystemNodes.ref_node(childrens[j]).ref_data().m_name == pathElements[i]) {
                 current = childrens[j];
@@ -343,15 +351,19 @@ handle filesystem::get_handle(const std::string& absolutePath)
                 break;
             }
         }
-        //found the last thing
-        if (i == pathElements.size() - 1) {
-            return current;
-        }
-
         if (!found) {
             throw invalid_path();
         }
+
+        //found the last thing
+        if (i == pathElements.size() - 1) {
+            break;
+        }
     }
+    if (!exist(current)) {
+        throw invalid_path();
+    }
+    return current;
 }
 
 handle filesystem::follow(const handle targetHandle)
@@ -362,10 +374,11 @@ handle filesystem::follow(const handle targetHandle)
     }
 
     if (m_fileSystemNodes.ref_node(targetHandle).ref_data().m_type == node_type::Link) {
-        follow(m_fileSystemNodes.ref_node(targetHandle).ref_data().m_linkedHandle);
+        return follow(m_fileSystemNodes.ref_node(targetHandle).ref_data().m_linkedHandle);
+    } else {
+        return targetHandle;
     }
 
-    return m_fileSystemNodes.ref_node(targetHandle).get_handle();
 }
 
 handle filesystem::get_largest_file_handle() const
@@ -379,16 +392,18 @@ size_t filesystem::get_available_size() const
     return m_sizeLimit - m_currentSize;
 }
 
-size_t filesystem::get_file_size(const handle targetHandle)
+size_t filesystem::get_file_size(handle targetHandle)
 {
 	if (!exist(targetHandle)) {
         throw invalid_handle();
     }
 
+    //get the thing that the link references
     if (m_fileSystemNodes.ref_node(targetHandle).ref_data().m_type == node_type::Link) {
-        get_file_size(m_fileSystemNodes.ref_node(targetHandle).ref_data().m_linkedHandle);
+        targetHandle = follow(targetHandle);
     }
 
+    //check if the target handle is a file
     if (m_fileSystemNodes.ref_node(targetHandle).ref_data().m_type != node_type::File) {
         throw invalid_handle();
     }
@@ -402,15 +417,16 @@ size_t filesystem::get_file_size(const std::string& absolutePath)
         throw invalid_path();
     }
 
-    if (m_fileSystemNodes.ref_node(get_handle(absolutePath)).ref_data().m_type == node_type::Link) {
-        get_file_size(get_absolute_path(m_fileSystemNodes.ref_node(get_handle(absolutePath)).ref_data().m_linkedHandle));
+    handle targetHandle = get_handle(absolutePath);
+    if (m_fileSystemNodes.ref_node(targetHandle).ref_data().m_type == node_type::Link) {
+        targetHandle = follow(targetHandle);
     }
 
-    if (m_fileSystemNodes.ref_node(get_handle(absolutePath)).ref_data().m_type != node_type::File) {
+    if (m_fileSystemNodes.ref_node(targetHandle).ref_data().m_type != node_type::File) {
         throw invalid_handle();
     }
 
-    return m_fileSystemNodes.ref_node(get_handle(absolutePath)).ref_data().m_fileSize;
+    return m_fileSystemNodes.ref_node(targetHandle).ref_data().m_fileSize;
 }
 
 std::string filesystem::print_layout()
