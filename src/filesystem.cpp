@@ -293,7 +293,7 @@ bool filesystem::exist(const handle targetHandle)
     bool found = false;
 
     try {
-        found = m_fileSystemNodes.ref_node(targetHandle).is_recycled();
+        found = !m_fileSystemNodes.ref_node(targetHandle).is_recycled();
     } catch (invalid_handle()) {
         return false;
     }
