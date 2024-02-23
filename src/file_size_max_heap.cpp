@@ -49,6 +49,7 @@ void file_size_max_heap::remove(const handle handle)
         throw invalid_handle();
     }
 
+    //set location to the last node
     m_nodes[location] = m_nodes.back();
     m_nodes.pop_back();
     m_nodeSize--;
@@ -56,8 +57,8 @@ void file_size_max_heap::remove(const handle handle)
     size_t current = location;
     bool sorted = false;
 
+    //heapify
     while (!sorted) {
-        //heapify
         size_t largestIndex = current;
         size_t leftIndex = 2 * current + 1;
         size_t rightIndex = 2 * current + 2;
@@ -71,7 +72,7 @@ void file_size_max_heap::remove(const handle handle)
         }
 
         if (largestIndex != current) {
-            //swap if the current node has a smaller value than its children
+            //swap if current node's value smaller than children
             std::swap(m_nodes[current], m_nodes[largestIndex]);
             current = largestIndex;
             sorted = false;

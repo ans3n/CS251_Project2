@@ -14,7 +14,7 @@ handle filesystem::create_file(const size_t fileSize, const std::string& fileNam
 {
 	/*Exceptions*/
     //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
-    if (!exist(0)) {
+    if (!exist(0) || (m_fileSystemNodes.ref_node(0).ref_data().m_type != node_type::Directory)) {
         throw invalid_handle();
     }
 
@@ -51,7 +51,7 @@ handle filesystem::create_directory(const std::string& directoryName)
 {
     /*Exceptions*/
     //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
-    if (!exist(0)) {
+    if (!exist(0) || (m_fileSystemNodes.ref_node(0).ref_data().m_type != node_type::Directory)) {
         throw invalid_handle();
     }
 
@@ -83,7 +83,7 @@ handle filesystem::create_link(const handle targetHandle, const std::string& lin
 {
     /*Exceptions*/
     //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
-    if (!exist(0) || !exist(targetHandle)) {
+    if (!exist(0) || !exist(targetHandle) || (m_fileSystemNodes.ref_node(0).ref_data().m_type != node_type::Directory)) {
         throw invalid_handle();
     }
 
@@ -213,7 +213,13 @@ handle filesystem::create_link(const handle targetHandle, const std::string& lin
 {
     /*Exceptions*/
     //If the parentHandle doesn’t exist or isn’t a directory, throw invalid_handle.
+    /*
     if (!exist(targetHandle) || !exist(parentHandle) || (m_fileSystemNodes.ref_node(parentHandle).ref_data().m_type != node_type::Directory)) {
+        throw invalid_handle();
+    }
+    */
+
+    if (!exist(targetHandle) || !exist(parentHandle)) {
         throw invalid_handle();
     }
 
@@ -280,12 +286,16 @@ std::string filesystem::get_name(const handle targetHandle)
 void filesystem::rename(const handle targetHandle, const std::string& newName)
 {
 	//If the targetHandle doesn’t exist, throw invalid_handle.
-    if (!exist(targetHandle)) {
+    if (!exist(targetHandle) || targetHandle == 0) {
         throw invalid_handle();
     }
 
     if (newName.find("/") != std::string::npos) {
         throw invalid_name();
+    }
+
+    if (newName == m_fileSystemNodes.ref_node(targetHandle).ref_data().m_name) {
+        throw name_exists();
     }
 
     //If a file/directory/symlink with newName already exists, throw name_exists
@@ -306,7 +316,7 @@ bool filesystem::exist(const handle targetHandle)
 
     try {
         found = !m_fileSystemNodes.ref_node(targetHandle).is_recycled();
-    } catch (invalid_handle()) {
+    } catch (const invalid_handle &) {
         return false;
     }
 
@@ -371,7 +381,6 @@ handle filesystem::follow(const handle targetHandle)
     } else {
         return targetHandle;
     }
-
 }
 
 handle filesystem::get_largest_file_handle() const
